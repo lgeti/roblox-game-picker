@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roblox Game Picker</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f1117;
+      --panel: #181b24;
+      --panel-2: #20242f;
+      --border: #2b3040;
+      --text: #eef0f6;
+      --muted: #8e94a8;
+      --accent: #00b06f;
+      --accent-2: #00d084;
+      --danger: #ff5c6c;
+      --gold: #ffc940;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    h1 { font-family: Fredoka, sans-serif; font-size: 2rem; margin: 0; letter-spacing: .3px; }
+    h1 span { color: var(--accent-2); }
+    .me { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .95rem; }
+    .me strong { color: var(--text); }
+    .link-btn { background: none; border: none; color: var(--accent-2); padding: 0; text-decoration: underline; }
+
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+    .add-form { display: grid; grid-template-columns: 2fr 1.3fr auto; gap: 10px; }
+    .add-form input, .name-form input {
+      background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; min-width: 0; outline: none;
+    }
+    .add-form input:focus, .name-form input:focus { border-color: var(--accent); }
+    .btn {
+      background: var(--accent); border: none; border-radius: 10px; padding: 12px 18px;
+      font-weight: 600; color: #fff; white-space: nowrap; transition: background .15s, transform .1s;
+    }
+    .btn:hover { background: var(--accent-2); }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .btn.ghost { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+    .btn.ghost:hover { border-color: var(--muted); }
+    .btn.big { font-family: Fredoka, sans-serif; font-size: 1.15rem; padding: 14px 26px; background: linear-gradient(135deg, #00b06f, #0aa3d6); }
+    .msg { margin-top: 10px; font-size: .9rem; min-height: 1.2em; color: var(--muted); }
+    .msg.error { color: var(--danger); }
+
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 26px 0 16px; }
+    .tabs { display: flex; gap: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
+    .tabs button { background: none; border: none; padding: 8px 14px; border-radius: 9px; color: var(--muted); font-weight: 500; }
+    .tabs button.active { background: var(--panel-2); color: var(--text); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s, transform .15s, box-shadow .15s;
+    }
+    .card:hover { border-color: #3a4156; }
+    .card.played { opacity: .55; }
+    .card.highlight { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255, 201, 64, .35); transform: translateY(-3px); }
+    .card.winner { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(255, 201, 64, .6), 0 10px 40px rgba(255, 201, 64, .25); transform: translateY(-4px) scale(1.02); }
+    .thumb { aspect-ratio: 16 / 10; background: var(--panel-2); position: relative; display: block; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb .placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 3rem; }
+    .badge {
+      position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+      padding: 4px 9px; border-radius: 999px; font-size: .78rem; font-weight: 600; color: #fff;
+    }
+    .badge .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); margin-right: 5px; vertical-align: 1px; }
+    .body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .title { font-family: Fredoka, sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0; line-height: 1.25; }
+    .title a { color: inherit; text-decoration: none; }
+    .title a:hover { color: var(--accent-2); }
+    .meta { font-size: .82rem; color: var(--muted); }
+    .note { font-size: .88rem; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; font-style: italic; }
+    .voters { display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { font-size: .75rem; background: var(--panel-2); border: 1px solid var(--border); padding: 3px 8px; border-radius: 999px; }
+    .chip.me-chip { border-color: var(--accent); color: var(--accent-2); }
+    .actions { display: flex; gap: 6px; margin-top: auto; padding-top: 6px; }
+    .actions .btn { padding: 8px 12px; font-size: .88rem; }
+    .actions .vote { flex: 1; }
+    .vote.on { background: var(--panel-2); border: 1px solid var(--accent); color: var(--accent-2); }
+    .icon-btn { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: .9rem; }
+    .icon-btn:hover { border-color: var(--muted); }
+    .icon-btn.del:hover { border-color: var(--danger); }
+
+    .empty { text-align: center; color: var(--muted); padding: 50px 20px; border: 1px dashed var(--border); border-radius: var(--radius); }
+
+    .overlay { position: fixed; inset: 0; background: rgba(5, 6, 10, .75); display: grid; place-items: center; padding: 16px; z-index: 10; }
+    .overlay[hidden] { display: none; }
+    .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 26px; width: 100%; max-width: 380px; text-align: center; }
+    .modal h2 { font-family: Fredoka, sans-serif; margin: 0 0 6px; }
+    .modal p { color: var(--muted); margin: 0 0 18px; }
+    .name-form { display: flex; flex-direction: column; gap: 10px; }
+
+    .result { margin-top: 18px; text-align: center; font-family: Fredoka, sans-serif; font-size: 1.3rem; min-height: 1.6em; }
+    .result a { color: var(--gold); }
+
+    @media (max-width: 700px) {
+      .add-form { grid-template-columns: 1fr; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🎮 Roblox <span>Game Picker</span></h1>
+      <div class="me" id="me"></div>
+    </header>
+
+    <section class="panel">
+      <form class="add-form" id="addForm">
+        <input id="urlInput" placeholder="Paste a Roblox game link, e.g. roblox.com/games/920587237/Adopt-Me" required />
+        <input id="noteInput" placeholder="Why should we play it? (optional)" maxlength="140" />
+        <button class="btn" id="addBtn" type="submit">Add game</button>
+      </form>
+      <div class="msg" id="addMsg"></div>
+    </section>
+
+    <div class="toolbar">
+      <div class="tabs" id="tabs">
+        <button data-filter="todo" class="active">To play</button>
+        <button data-filter="played">Played</button>
+        <button data-filter="all">All</button>
+      </div>
+      <button class="btn big" id="pickBtn">🎲 Pick a game for us</button>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="overlay" id="nameOverlay" hidden>
+    <div class="modal">
+      <h2>Who are you?</h2>
+      <p>Your name shows up on the games you add and vote for.</p>
+      <form class="name-form" id="nameForm">
+        <input id="nameInput" placeholder="Your name" maxlength="30" required autocomplete="nickname" />
+        <button class="btn" type="submit">Let's go</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let games = [];
+    let filter = 'todo';
+    let picking = false;
+
+    // ----- name (kept per browser) -----
+    function getName() {
+      try { return localStorage.getItem('rgp-name') || ''; } catch { return ''; }
+    }
+    function setName(name) {
+      try { localStorage.setItem('rgp-name', name); } catch {}
+      renderMe();
+      render();
+    }
+    function askName() {
+      $('nameInput').value = getName();
+      $('nameOverlay').hidden = false;
+      $('nameInput').focus();
+    }
+    function renderMe() {
+      const name = getName();
+      $('me').innerHTML = name
+        ? `Playing as <strong>${esc(name)}</strong> <button class="link-btn" id="changeName">change</button>`
+        : '';
+      if (name) $('changeName').onclick = askName;
+    }
+    $('nameForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('nameInput').value.trim();
+      if (!name) return;
+      $('nameOverlay').hidden = true;
+      setName(name);
+    });
+
+    // ----- helpers -----
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function compact(n) {
+      return Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+    }
+    async function api(path, options = {}) {
+      const res = await fetch(window.API_BASE + path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json' },
+        body: options.body ? JSON.stringify(options.body) : undefined,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      return data;
+    }
+
+    // ----- data -----
+    async function load() {
+      try {
+        games = await api('/api/games');
+        if (!picking) render();
+      } catch (err) {
+        console.error(err);
+        if (!games.length) {
+          $('grid').innerHTML = '<div class="empty" style="grid-column: 1 / -1">Can\'t reach the game list right now. Try again in a moment.</div>';
+        }
+      }
+    }
+
+    function visibleGames() {
+      return games
+        .filter((g) => filter === 'all' || (filter === 'played' ? g.played : !g.played))
+        .sort((a, b) => b.votes.length - a.votes.length || a.addedAt.localeCompare(b.addedAt));
+    }
+
+    // ----- render -----
+    function render() {
+      const me = getName();
+      const list = visibleGames();
+      const grid = $('grid');
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1">${
+          filter === 'played' ? 'Nothing marked as played yet.' : 'No games yet. Paste a Roblox link above to add the first one!'
+        }</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map((g) => {
+        const iVoted = g.votes.includes(me);
+        return `
+          <article class="card ${g.played ? 'played' : ''}" data-id="${g.id}">
+            <a class="thumb" href="${esc(g.url)}" target="_blank" rel="noopener">
+              ${g.icon ? `<img src="${esc(g.icon)}" alt="" loading="lazy" />` : '<div class="placeholder">🧱</div>'}
+              ${g.playing != null ? `<span class="badge"><span class="dot"></span>${compact(g.playing)} playing</span>` : ''}
+            </a>
+            <div class="body">
+              <h3 class="title"><a href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.name)}</a></h3>
+              <div class="meta">
+                ${g.creator ? `by ${esc(g.creator)} · ` : ''}added by <strong>${esc(g.addedBy)}</strong>
+                ${g.maxPlayers ? ` · max ${g.maxPlayers} per server` : ''}
+              </div>
+              ${g.note ? `<div class="note">“${esc(g.note)}”</div>` : ''}
+              <div class="voters">
+                ${g.votes.map((v) => `<span class="chip ${v === me ? 'me-chip' : ''}">${esc(v)}</span>`).join('')}
+              </div>
+              <div class="actions">
+                <button class="btn vote ${iVoted ? 'on' : ''}" data-action="vote">${iVoted ? '✓ I\'m in' : '🙋 I want to play'} (${g.votes.length})</button>
+                <button class="icon-btn" data-action="played" title="${g.played ? 'Mark as not played' : 'Mark as played'}">${g.played ? '↩️' : '✅'}</button>
+                <button class="icon-btn del" data-action="delete" title="Remove">🗑️</button>
+              </div>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    // ----- actions -----
+    $('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!getName()) return askName();
+      const btn = $('addBtn');
+      const msg = $('addMsg');
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+      msg.className = 'msg';
+      msg.textContent = 'Looking up the game on Roblox…';
+      try {
+        const game = await api('/api/games', {
+          method: 'POST',
+          body: { url: $('urlInput').value, note: $('noteInput').value, addedBy: getName() },
+        });
+        msg.textContent = `Added "${game.name}" 🎉`;
+        $('urlInput').value = '';
+        $('noteInput').value = '';
+        if (filter === 'played') setFilter('todo');
+        await load();
+      } catch (err) {
+        msg.className = 'msg error';
+        msg.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Add game';
+      }
+    });
+
+    $('grid').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const id = btn.closest('.card').dataset.id;
+      const action = btn.dataset.action;
+      const game = games.find((g) => g.id === id);
+      try {
+        if (action === 'vote') {
+          if (!getName()) return askName();
+          await api(`/api/games/${id}/vote`, { method: 'POST', body: { name: getName() } });
+        } else if (action === 'played') {
+          await api(`/api/games/${id}/played`, { method: 'POST' });
+        } else if (action === 'delete') {
+          if (!confirm(`Remove "${game.name}" from the list?`)) return;
+          await api(`/api/games/${id}`, { method: 'DELETE' });
+        }
+        await load();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    function setFilter(f) {
+      filter = f;
+      document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.filter === f));
+      render();
+    }
+    $('tabs').addEventListener('click', (e) => {
+      if (e.target.dataset.filter) setFilter(e.target.dataset.filter);
+    });
+
+    // ----- random picker: weighted by votes, with a little spin animation -----
+    $('pickBtn').addEventListener('click', async () => {
+      if (picking) return;
+      const pool = games.filter((g) => !g.played);
+      if (!pool.length) {
+        $('result').textContent = 'Add some games (that you haven\'t played) first!';
+        return;
+      }
+      setFilter('todo');
+      picking = true;
+      $('result').textContent = 'Spinning…';
+
+      const totalWeight = pool.reduce((sum, g) => sum + g.votes.length + 1, 0);
+      let roll = Math.random() * totalWeight;
+      const winner = pool.find((g) => (roll -= g.votes.length + 1) < 0) || pool[pool.length - 1];
+
+      const cards = [...document.querySelectorAll('.card')];
+      const winnerIndex = cards.findIndex((c) => c.dataset.id === winner.id);
+      const steps = cards.length * 3 + winnerIndex;
+      let delay = 50;
+      for (let i = 0; i <= steps; i++) {
+        cards.forEach((c) => c.classList.remove('highlight'));
+        cards[i % cards.length].classList.add('highlight');
+        await new Promise((r) => setTimeout(r, delay));
+        if (i > steps - 10) delay *= 1.25;
+      }
+      cards.forEach((c) => c.classList.remove('highlight'));
+      const winnerCard = cards[winnerIndex];
+      winnerCard.classList.add('winner');
+      winnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('result').innerHTML = `Tonight we play: <a href="${esc(winner.url)}" target="_blank" rel="noopener">${esc(winner.name)}</a> 🎉`;
+
+      setTimeout(() => {
+        picking = false;
+        winnerCard.classList.remove('winner');
+        render();
+      }, 6000);
+    });
+
+    // ----- start -----
+    renderMe();
+    if (!getName()) askName();
+    load();
+    setInterval(load, 10000); // pick up friends' changes
+  </script>
+</body>
+</html>

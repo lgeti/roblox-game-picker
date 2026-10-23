@@ -1,0 +1,17 @@
+name = "roblox-game-picker"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+
+# Comma-separated list of sites allowed to call the API, e.g.
+# "https://yourname.github.io,http://localhost:5500". "*" allows any site.
+[vars]
+ALLOWED_ORIGINS = "*"
+
+[[durable_objects.bindings]]
+name = "GAME_LIST"
+class_name = "GameList"
+
+# SQLite-backed Durable Objects are included in the Workers free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GameList"]

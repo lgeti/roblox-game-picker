@@ -1,0 +1,15 @@
+{
+  "name": "roblox-game-picker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A shared list of Roblox games to play with friends, with voting and a random picker.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "page": "npx --yes serve docs -l 5500"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  }
+}
